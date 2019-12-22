@@ -1,0 +1,293 @@
+---
+title: "Feed to defend: Decoupling Nitrogen and Potassium effects on weevil damage in East African Highland Bananas"
+subtitle: "Defensive nutrition for bananas"
+author: "Hannington Bukomeko, Godfrey Taulya, Gerrie van de Ven , Tom Schut & Ken Giller"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+always_allow_html: true
+output:
+  word_document: default
+  mainfont: Times New Roman
+
+---
+
+# **Background**
+More than one third ofAfrica’s banana (Musa spp.) production, or nearly 11% ofworld production, comes from the East African region i.e., Burundi, Democratic Republic ofCongo (DR Congo), Kenya, Rwanda, Tanzania, and Uganda [@FAO2019]. Banana provides 60% of food energy needs for over 70 million people in this region [@Abele2007] and contributes to incomes offarm households and businessmen along the value chain ofthe crop [@Edmeades2007].
+
+In modern agriculture, the most critical problem for increasing yield and developing sustainable
+agriculture is sufficient fertilizers supply and
+successful crop protection against herbivores. Herbivores are sensitive to alternation in host plant
+nutrition. Nutrient enrichment from agricultural and atmospheric sources has the potential to alter
+plant–insect interactions via changes in plant growth and defense. Optimized management of chemical
+fertilizers will be essential for achieving sustainability of intensive farming. If integrated crop production
+is to be extensively used in the future, a greater understanding of relationships among soil
+characteristics, fertilization practices, plant nutrient content and the ability of pests to reduce yield or
+crop quality will be required. [Adapt to own, cite [@Bala2018]
+
+However, banana production and its area cultivated are shrinking. The reduction is due to pest and nutrient limitations that can also interact to reinforce each other: pests impair nutrient uptake and inadequate nutrition makes the plant susceptible to pest and diseases [@Smithson2001].  
+
+In the 1990s, scientists ranked pests as the most limiting costraint and thus embarked on integrated pest management to suppress the most limiting pest -weevils (*Cosmopolites sordidus* Germar). Simulataneously, breeding for resistance and/or tolerance begun. While the breeding took it slow course [@Batte2019], the entomologists identified cultural methods like plantation hygiene to suppress weevil populations.  
+
+Recently, more and more reports highlight nutrients as the most limiting with weevils in a close second [@Wairegi2009]. Given that phytophagus insects are sensitive to nutrient changes in the host plants [@Oketch1996]. Some studies suggest fertiliser has: (i) a positive [@Bi2005; @Pikul2005], (ii) a negative [@Salmah1998 & @Pitan2000] or (iii) no effect at all [@Haile2001 & @Srikanth2002] on insect populations. In EAHBs,Some studies have explored inorganic fertilisers to boost nutrition while simulataneously suppressing the weevils. The results showed that:  
+
+  1. Fertilisers had no effect on weevil damage [@Smithson2001 & @Smithson2004];
+  2. Fertilisers increased the susceptibility of bananas to weevil damage [@Rukazambuga2002] and;
+  3. Weevil damage undermines fertiliser application and should be solved for fertiliser to become profitable [@Ssali2003].
+
+Fertiliser were therefore not included in the integrated pest management suite for banana and farmers continued with cultural control techniques. When revisited however, the literature shows that the amounts of nutrients applied in those trials were likely too low to sufficiently feed the banana let alone confer any tolerance to weevil damage.  
+
+The current study revisits the decades old question to explore the relationship between nutrient supply and weevil damage in EAHBs. Since nitrogen and potassium are the two most limiting nutrients in EAHBs, this study only focused on the relationship between nitrogen and potassium nutrient status and its effect on weevil damage. Specifically to:  
+
+  1. Characterise banana fields based on nitrogen and potassium status the relationship between weevil damage and the nutrients and;
+  2. Quantify the effect of adequate supply of potassium and nitrogen on weevil damage in EAHBs.
+
+# **Materials and Methods**
+## **Study sites**
+1. Nakaseke, Isngiro and Kabarole
+2. Senge, Kawanda
+
+## **Study designs**
+1. Crossectional survey
+2. Completely randomised block design
+
+## **Data analysis**
+1. Boundaary line analysis
+2. cluster analysis
+3. modelling nutrient effects on weevil damage
+  + i. Negative binomial model for the survey data
+    ii. Generalised linera mixed effects model with the negative binomial family
+
+# **Results**
+## **Weevil damage variations with potassium and Nitrogen**
+### **Within farm variations of weevil damage with potassium and nitrogen**
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.cap = "Boundary relationships among weevil damage, nutrients and distance from homestead", fig.width = 7, fig.height = 7, fig.align = "centre"}
+# plotting all on the same page
+library(gridExtra)
+library(tidyverse)
+library(officer)
+library(flextable)
+library(knitr)
+
+source(here::here("scripts", "Boundary_line_analysis.R"))
+
+grid.arrange(g1, g4, g2, g5, g3, g6, nrow = 3)
+ggsave(path = here::here("Results", "Figs"), filename = "Boundary_plots.png")
+```
+
+### **Accross farm variations of weevil damage with Potassium and Nitrogen**   
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE,fig.cap = "Characterising banana fields based on Potassium and Nitrogen availability (A) and effect plot (B) of  negative binomial model showing the difference in weevil damage between the clusters", fig.width = 5, fig.height = 6, fig.align = "Centre"}
+##  plotting all on the same page
+library(tidyverse)
+library(gridExtra)
+library(stargazer)        # well formatted LaTeX and html code
+library(kableExtra)
+library(officer)
+library(flextable)
+library(knitr)
+
+source(here::here("scripts","NK_typology.R"))
+
+grid.arrange(g10, g12, nrow = 2)
+ggsave(path = here::here("Results", "Figs"), filename = "Clustering vs weevil damage.png")
+
+# kable(dT1_a, "latex", booktabs = T) %>%
+# kable_styling(font_size = 7)
+# 
+# kable(g, booktabs = T) %>%
+# kable_styling(font_size = 7)
+```
+
+
+```{r, echo = FALSE, ft.split=TRUE}
+library(flextable)
+table1 <- flextable::flextable(dT1_a) %>% flextable::autofit() %>% 
+  add_header_lines("Description of clusters based on nitrogen and potassium nutrient status in EAHB fields")
+table1
+```
+
+The fields were characterised into two groups of: 
+    i. low potassium and nitrogen and; 
+    ii. high potassiuma and nitrogen.  
+```{r, echo = FALSE, ft.split=TRUE}
+library(flextable)
+table2 <- regulartable(g) %>% flextable::autofit() %>% 
+  add_header_lines("Differences in weevil damage between Clusters")
+table2
+```
+Comparing weevil damage between clusters shows that weevil damage was lower in fields of higher potassium and nitrogen. In fact the moving from low potassium and nitrogen fields to high potassium and nitrogen fields lowers weevil damage by `r round((1-exp(g$estimate[2]))*100,2) `%.
+
+## **Effect of potassium levels on weevil damage in banana fields**
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE,fig.cap = "Effect of potassium level on weevil damage in East African Highland Bananas", fig.width = 5, fig.height = 6, fig.align = "centre"}
+##  plotting all on the same page
+library(tidyverse)
+library(gridExtra)
+library(stargazer)        # well formatted LaTeX and html code
+library(officer)
+library(flextable)
+
+source(here::here("scripts", "K_levels on weevil damage.R"))
+
+g8
+ggsave(path = here::here("Results", "Figs"), filename = "K_level vs weevil damage.png")
+
+# kable(l, "latex", booktabs = T) %>%
+# kable_styling(font_size = 7)
+
+```
+
+
+```{r, echo = FALSE, ft.split=TRUE}
+library(flextable)
+table3 <- regulartable(l) %>% flextable::autofit() %>% 
+  add_header_lines("Differences in weevil damage between potassium-sufficient fields and potassium-deficient fields on EAHBs")
+table3
+```
+Weevil damage was found to be higher in fields deficient of potassium. moving from potassium deficient to potassium sufficient fields lowers pest damage by `r round((1-exp(l$estimate[2]))*100,2) `%
+
+## **Combined effect of potassium and nitrogen nutrients on weevil damage**
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE,fig.cap = "Effect of potassium and nitrogen status on weevil damage in East African Highland Bananas", fig.width = 5, fig.height = 6, fig.align = "centre"}
+##  plotting all on the same page
+library(tidyverse)
+library(broom.mixed)
+library(gridExtra)
+library(stargazer)        # well formatted LaTeX and html code}
+library(xtable)
+library(kableExtra)
+library(officer)
+library(flextable)
+library(knitr)
+
+source(here::here("scripts", "nutrient status vs weevil damage.R"))
+
+g18
+ggsave(path = here::here("Results", "Figs"), filename = "Total weevil damage against Nutrient status_nonzero.png")
+```
+
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE, results= "asis"}
+##  plotting all on the same page
+library(tidyverse)
+library(broom.mixed)
+library(gridExtra)
+library(stargazer)        # well formatted LaTeX and html code}
+library(xtable)
+library(kableExtra)
+library(officer)
+library(flextable)
+library(knitr)
+
+source(here::here("scripts", "nutrient status vs weevil damage.R"))
+
+T1 <- broom.mixed::tidy(KNx2)
+# table <- as.matrix(T1)
+# kable(table, caption = "Table.test1")
+# 
+T2 <- tidy(fit4)
+# table2 <- as.matrix(T2)
+# kable(table2, caption = "Table.test2")
+# 
+# # set pander table-layout options
+# library(pander)
+# panderOptions('table.alignment.default', function(table)
+#     ifelse(sapply(table, is.numeric), 'right', 'left'))
+# panderOptions('table.split.table', Inf)
+# panderOptions('big.mark', ",")
+# panderOptions('keep.trailing.zeros', TRUE)
+# pander(table)
+# kable(table, caption = "Table.test1")
+# T1 %>% xtable::xtable() %>% print(type = "html")
+#  kable(broom.mixed::tidy(KNx2), "latex", booktabs = T) %>%
+#  kable_styling(font_size = 7)
+# 
+# kable(tidy(fit4),"latex",booktabs = T) %>%
+# kable_styling(font_size = 7)
+
+```
+
+
+```{r, echo = FALSE, ft.split=TRUE}
+library(flextable)
+table4 <- regulartable(T1) %>% flextable::autofit() %>% 
+  add_header_lines("Generalised linear mixed effects model showing the effect of nitrogen and potassium on weevil damaage while controlling for spraying")
+table4
+```
+The experimental data clearly shows the antagnostic effect of Potassium and nitrogen on weevil damage. potassium suppressed weevil damage by `r round((1-exp(T1$estimate[2]))*100,2) `% for unit increase in potassium and nitrogen promoted weevil damage by `r round((exp(T1$estimate[3])-1)*100,2) ` % for every unit increase in nitrogen. 
+
+```{r, echo = FALSE, ft.split=TRUE}
+library(flextable)
+table5 <- regulartable(T2) %>% flextable::autofit() %>% 
+  add_header_lines("Generlised linear mixed effects model showing the influence of nutrient status on weevil damage after controlling for spraying")
+table5
+```
+When combined, weevil damage was significantly higher in Nitrogen alone, none and nitrogen plus potassium combination than in potassium alone. Taking potassium alone as the base category, all other categories had more weevil damage:  
+
+1. the category where no fertiliser was applied had `r round((exp(T2$estimate[4])-1)*100,2) ` % ; 
+2. the category of potassium and nitrogen combined had `r round((exp(T2$estimate[2])-1)*100,2) ` % and;
+3. the category of only nitrogen had `r round((exp(T2$estimate[3])-1)*100,2) ` % more than the potassium alone.
+
+
+# **Discussions**
+Since the contribution of potassium to weevil control is consistently about 25% both on-farm and on-station, it seems a good addition to the existing set of integrated weevil managment strategies.
+
+The data show that potassium suppresses weevil damage whereas nitrogen promotes weevil damage. When applied together, the overall effect will depend on the ratio of applied nitrogen to potassium. if more potassium (at least 1.5 times more), potassium might overide and suppress weevil damage. However, if applied in equal amounts like in most previous studies, nitrogen having a bigger effect size  (`r round((exp(T1$estimate[3])-1)*100,2) ` %)) than potassium (`r round((1-exp(T1$estimate[2]))*100,2) `% )will overide and likely cause more pest damage than the control.  
+
+
+## **Reconciling with previous studies**  
+**Conclusion from Smithson et al 2001 and how that study relates to current study**   
+
+1. Fertilizer applications had little effect on banana weevil damage at either site.
+  + i. The amount of fertiliser at 100K was low 
+    ii. The amount of soil K reported was also low at about 0.8 below the critical value of 0.963 observed on our work.
+    iii. The the choice of critical value are somewhat arbitrary, the authors choose the value of 0.40 cmolc kg1 proposed by Walmsley et al. (1971). This is below the recently determined value of 0.963 in western Uganda and 1.6 in central Uganda. 
+
+**Conclusion from Rukazambuga et al 2002 and how that study relates to current study**   
+
+1. C. sordidus problems are not confined to stressed banana systems or those with low levels of management, but that the insect can also attain pest status in well-managed and productive banana stands
+  + i. The definition of "well managed" here refers to addition of organic matter in the form of manure and mulch. These largely provided nitrogen and the high pest damage observed consequently supports our general observation that supplying nitrogen alone increases banana susceptibility to weevil damage.  
+2. Plant stress might reduce naturally occurring levels of host plant resistance to C. sordidus
+  + i. This agrees with our observation that potassium stress makes the plant susceptible to  weevil damage  
+3. The effect of C. sordidus attack was greater on yield  because of C. sordidus ovipositional preferences and
+timing of attack. Oviposition is greatest during the bunchfilling stage after flowering
+  + i. It could be argued that oviposition is simplest after flowering because the plant is probably withdrawing most its assimilates from the corm (icluding K) to the bunch thus leaving the corm relatively "soft". The flowering stage therefore presents the best opportunity for breeding sucess of the weevil since the tissues are "softer".
+    ii. The effect of Weevil damage on yield is because damage inteferes with the asssimilates transfer at the stage of bunch filling as weevil-larvae barrow through the xylem vessel  causing damage.  
+
+**Conclusion from Sali et al 2003 and how that study relates to current study**  
+
+1. When weevil damage is over 5% of the cross section near the collar, banana production may not be economically increased through use of mineral fertilizer (NPKMg 50 15 50 12.5 kg ha yr).
+  + i. The amount of potassium supplied was too low to suppress weevil damage.
+    ii. The amount of potassium in the soil at the end of the experiment was also to low compared to the critical (0.963-1.62).  
+
+**Conclusion from Smithson et al 2004 and how they relate to current study**   
+
+1. K or K & Mg fertilization had little or no effect on damage levels at either site.
+  + i. This is likely due to applying very low levels of potassium at 100K. This translates into 0.6-0.75 K compared to the critical of 0.963-1.6 calculated for central and western Uganda.  
+
+**Conclusion from Oketch et al 2004 and how they relate to current study**  
+1. Weevil pressure at the site was too low (weevil damage <4%) to result in significant yield loss.
+ +i. We do not need to erradicate weevils completely to simply suppress their damage to below economic threshold
+  
+**Fertilisers and pests: a review **  
+1. In many cases, Higher K+ concentrations enables plants to allocate more resources to developing stronger cell walls for preventing insect attack and to obtain more nutrients to be used for plant defense (Wang et al 2013).
+2. Adequate K increases phenol concentrations, which play a critical role in plant resistance. (Wang et al 2013)
+3. Therefore, any fertiliser regime that increases plant nitrogen might be expected to benefit pest species (Altieri and Nicholls, 2003).
+4. Increase in nitrogen increases the biosynthesis or accumulation of proteins, free amino acid and sugars that might have attracted insects (Bala et al 2018)
+5. Suggesting that proper application of potassium and nitrogen fertilizers should be beneficial to controlling insect herbivores (Bala et al 2018)
+6.The beneficial effect of potassium largely predominates in the case of plant hoppers and Coleoptera (Bala et al 2018)
+7. Nitrogen fertilization may decrease plant resistance to insect pests by  reducing the secondary metabolite concentrations in host plants (Yadim and Edwards 2003).
+8. The vote count resultsmirrored the meta-analysis, with nitrogen and NPK having a significant positive effect,
+and phosphorus and potassium having a non-significant negative effect. the studies covering potassium were however few and more needs to be done (Butler et al 2012). 
+9. Sap feeding insects responded positively to Nitrogen fertiliser (Collins and Drummond 2018)  
+
+**Other relevant studies**  
+1. Increasing levels of nitrogen may also have deleterious effects on phytophagous insects through digestion costs(Turlureet al., 2013; Tanneret al., 2015). These costs mayresult from the higher concentration of toxic (nitrogen-containing)secondary metabolites (e.g. proteinase inhibitors or polyphenoloxidase; Tao & Hunter, 2012).  
+2. More nitrogen may also improve plant growth improving the palatability of the plants because of a rapid decline in concentration of defence metabolites (Herms & Mattson,1992) and an increase in the concentration of soluble nitrogen compounds (e.g. free amino acids; Flückigeret al., 2002).Therefore, the formulation of the ‘nitrogen limitation hypothe-sis’ (White, 1993) posits that a shortage in plant nitrogen reduces phytophagous insects’ growth (e.g. Hanet al., 2014), and thatincreasing nitrogen contents result in shorter development timesand greater maximum larval body mass (e.g. Cateset al., 1987;Taylor, 1988; Clancy, 1992; Hunter & Mcneil, 1997; Inbaret al.,2001)  
+
+# **Conclusions**
+1. Supplying nitrogen without potassium makes the plant susceptible to weevil damage
+2. Supplying sufficient potassium (beyond the critical value) suppresses weevil damage in EAHBs 
+3. sufficient and balanced supplied of nitrogen and potassium should be added to integrated weevil control in EAHBs as it enhances suppression of weevil damage in EAHBs.  
+
+# **References**
