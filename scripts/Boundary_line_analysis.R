@@ -4,6 +4,7 @@ library(data.table) # data structure
 library(MASS) # modelling negative binomial
 library(broom) # summaring model info into tidy tibbles
 library(msme) # dispersion parameter for poisson family
+library(TRADER) # boundaryline analysis
 
 # fetch my custom functions
 source(here::here("scripts", "Custom functions.R"))

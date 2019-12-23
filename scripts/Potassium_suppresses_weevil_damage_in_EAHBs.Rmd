@@ -7,7 +7,7 @@ always_allow_html: true
 output:
   word_document: default
   mainfont: Times New Roman
-
+bibliography: Feed_to_defend.bib
 ---
 
 # **Background**
