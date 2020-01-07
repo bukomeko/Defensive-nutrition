@@ -1,3 +1,6 @@
+# Additional analysis to consider
+## weevil damage vs Nitrogen
+
 ##  Packages and custom functions used
 library(tidyverse) # the world of tidy data wrangling
 library(data.table) # data structure

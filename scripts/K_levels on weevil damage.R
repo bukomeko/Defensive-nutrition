@@ -1,3 +1,6 @@
+# Additional analysis to consider
+## splitting the dataset at 5% internal damage and checking for differences in N levels
+
 ##  differences between k deficient and K sufficient fields 
 library(data.table)
 library(broom)

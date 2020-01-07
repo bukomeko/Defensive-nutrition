@@ -1,7 +1,7 @@
 ---
-title: "Feed to defend: Decoupling Nitrogen and Potassium effects on weevil damage in East African Highland Bananas"
-subtitle: "Defensive nutrition for bananas"
-author: "Hannington Bukomeko, Godfrey Taulya, Gerrie van de Ven , Tom Schut & Ken Giller"
+title: "Feeding to defend: Decoupling effects of Nitrogen and Potassium on weevil damage in Bananas"
+subtitle: "Defensive nutrition for East African Highland Bananas"
+author: "Hannington Bukomeko, Dennis Ochola, Godfrey Taulya, Gerrie van de Ven , Tom Schut & Ken Giller"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 always_allow_html: true
 output:
@@ -37,8 +37,8 @@ Fertiliser were therefore not included in the integrated pest management suite f
 
 The current study revisits the decades old question to explore the relationship between nutrient supply and weevil damage in EAHBs. Since nitrogen and potassium are the two most limiting nutrients in EAHBs, this study only focused on the relationship between nitrogen and potassium nutrient status and its effect on weevil damage. Specifically to:  
 
-  1. Characterise banana fields based on nitrogen and potassium status the relationship between weevil damage and the nutrients and;
-  2. Quantify the effect of adequate supply of potassium and nitrogen on weevil damage in EAHBs.
+  1. Explore how weevil damage varies with Nitrogen and potassium availability in EAHBs and;
+  2. Quantify the effect of potassium and nitrogen availability on weevil damage in EAHBs.
 
 # **Materials and Methods**
 ## **Study sites**
@@ -59,6 +59,10 @@ The current study revisits the decades old question to explore the relationship 
 # **Results**
 ## **Weevil damage variations with potassium and Nitrogen**
 ### **Within farm variations of weevil damage with potassium and nitrogen**
+
+```{r, include = FALSE, warning = FALSE, message=FALSE}
+source(here::here("scripts", "installpackages.r"))
+```
 
 ```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.cap = "Boundary relationships among weevil damage, nutrients and distance from homestead", fig.width = 7, fig.height = 7, fig.align = "centre"}
 # plotting all on the same page
@@ -116,6 +120,15 @@ table2 <- regulartable(g) %>% flextable::autofit() %>%
 table2
 ```
 Comparing weevil damage between clusters shows that weevil damage was lower in fields of higher potassium and nitrogen. In fact the moving from low potassium and nitrogen fields to high potassium and nitrogen fields lowers weevil damage by `r round((1-exp(g$estimate[2]))*100,2) `%.
+## **Determination of critical soil K value for East African Highland Bananas**
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE, fig.cap = "Determining soil potassium critical values for bananas in Central, Western and Southwestern Uganda", fig.width = 7, fig.height = 7}
+# packages and functions
+source(here::here("scripts", "BoundaryLinesK.R"))
+grid.arrange(bla_Central, bla_Western, bla_Southwest, ncol = 1)
+
+```
+
 
 ## **Effect of potassium levels on weevil damage in banana fields**
 
