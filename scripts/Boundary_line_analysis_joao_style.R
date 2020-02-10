@@ -7,7 +7,6 @@ library(data.table)           # data structure
 library(MASS)                 # modelling negative binomial
 library(broom)                # summaring model info into tidy tibbles
 library(msme)                 # dispersion parameter for poisson family
-library(TRADER)               # boundaryline analysis
 library(patchwork)            # combining plots
 library(export)               # export graphs to word and office
 library(extrafont)            # fonts
@@ -497,3 +496,5 @@ graph2doc(
 
 windows()
 Grand
+citation()
+                                     

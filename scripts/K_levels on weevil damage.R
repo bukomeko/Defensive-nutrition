@@ -9,9 +9,12 @@ library(tidyverse)
 library(MASS)
 library(jtools)
 library(here)
+library(export)
 
 # source custom functions
 source(here::here("scripts", "Custom functions.R"))
+# visual elements
+axis_text <- element_text(color = "black", size = 12)
 
 ##  prepare data for analysis ####
 
@@ -46,12 +49,12 @@ Dt3 <- Dt3 %>%
 Dt3 <- Dt3 %>%
   mutate(K_level = case_when(
     K < 0.96 ~ "K_deficient",   K >= 0.96 ~ "K_sufficient",
-    Region == "Western" & K < 0.96 ~ "K_deficient",
-    Region == "Western" & K >= 0.96 ~ "K_sufficient",
-    Region == "Southwestern" & K < 0.96 ~ "K_deficient",
-    Region == "Southwestern" & K >= 0.96 ~ "K_sufficient",
-    Region == "Central" & K < 1.6 ~ "K_deficient",
-    Region == "Central" & K >= 1.6 ~ "K_sufficient")) %>%
+    Region == "Western" & K < 0.93 ~ "K_deficient",
+    Region == "Western" & K >= 0.93 ~ "K_sufficient",
+    Region == "Southwestern" & K < 0.81 ~ "K_deficient",
+    Region == "Southwestern" & K >= 0.81 ~ "K_sufficient",
+    Region == "Central" & K < 1.5 ~ "K_deficient",
+    Region == "Central" & K >= 1.5 ~ "K_sufficient")) %>%
   as.data.table(.) %>%
   .[, K_level := as.factor(K_level)]
 
@@ -68,7 +71,21 @@ fwrite(l, here::here("Results", "Tables", "positve XT between K levels.csv"))
 res_effectplot5 <- jtools::effect_plot(New_model7, pred = K_level, interval = TRUE, plot.points = TRUE)
 
 g8 <- res_effectplot5 +
-  labs(y = "Total weevil damage (%)") +
-  ggtitle("Total weevil damage against K status_nonzero")
-ggsave(path = here::here("Results", "Figs"), filename = "Total weevil damage against K status_nonzero.png", width = 6, height = 7)
+  labs(y = "Weevil damage (%)") +
+  theme_bw(base_size = 12)+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black")
+  ) +
+  theme(axis.text.x = axis_text,
+        axis.ticks.x = element_blank(),
+        axis.text.y = axis_text,
+        title = axis_text)
+ggsave(path = here::here("Results", "Figs"), filename = "Total weevil damage against K status_nonzero.eps", width = 5, height = 7)
 g8
+graph2doc(
+  file = paste0(here::here("Results", "Figs"), "/", "Grand4.docx"),
+  width = 4,
+  height = 5
+)

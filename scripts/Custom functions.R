@@ -64,7 +64,7 @@
     data[, sqmeandist := (rowMeans(c(d1,d2,d3,d4),na.rm = TRUE)^2)]
     data[, mat_density:= 10000/sqmeandist]
   }
-
+  
   get_leaf_area       <- function(data, Girth0, Height, FL) {
     a <- 0.404
     b <- 0.381
@@ -152,7 +152,7 @@
       labs(x = expression("K concentration"(cmol+kg^-1)),
            y = "Relative fresh bunch weight", title = dplyr::ensym(Fig.name))
     
-return(bla_plot)
+    return(bla_plot)
     
   }
   

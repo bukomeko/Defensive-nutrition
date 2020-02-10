@@ -1,14 +1,15 @@
 ##  load packages and functions 
-library(tidyverse) # tidy data wrangling
-library(data.table) # enhanced version of data.frame
-library(MASS) # glm models
-library(broom) # tidying model outputs
-library(msme) # methods for statistical model estimation (P__disp)
-library(mclust) # Model-Based Clustering
-library(factoextra) # multivariate data analysis and visualization
-library(cluster) # methods for cluster analysis
-library(clValid) # choose clustering alogarithm and number of clusters
-library(jtools) # model support for regression analyses (robust SE)
+library(tidyverse)            # tidy data wrangling
+library(data.table)           # enhanced version of data.frame
+library(MASS)                 # glm models
+library(broom)                # tidying model outputs
+library(msme)                 # methods for statistical model estimation (P__disp)
+tlibrary(factoextra)           # multivariate data analysis and visualization
+library(cluster)              # methods for cluster analysis
+library(clValid)              # choose clustering alogarithm and number of clusters
+library(jtools)               # model support for regression analyses (robust SE)
+library(patchwork)            # combining plots
+library(export)               # export graphs to word and office
 
 # source custom functions
 source(here::here("scripts", "Custom functions.R"))
@@ -45,17 +46,29 @@ dT <- Dt2 %>%
 
 ##  choose cluster alogarithm, number of clusters, then cluster and visualize  ####
 
-# # alogarithm and number of clusters, say yes!
-# get_clustering(data = dT, n = 6)      #chooses hclust with 2 clusters
+# alogarithm and number of clusters, say yes!
 
 # Enhanced hierarchical clustering, cut in 2 groups
 my_data <- scale(dT)
 res.hc <- eclust(my_data, "hclust", k = 2, graph = FALSE)
 
+# visual elements
+axis_text <- element_text(color = "black", size = 12)
+
 # Visualize
 g10 <- fviz_dend(res.hc, rect = TRUE, show_labels = FALSE) +
-  ggtitle("A")
-ggsave(path = here::here("Results", "Figs"), filename = "NK_clusters.png", width = 7, height = 6)
+  ggtitle("A")+
+  theme_bw(base_size = 12)+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black")
+  ) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = axis_text,
+        title = axis_text)
+
 dT1 <- cbind(Dt2, res.hc$cluster)
 setnames(dT1, "V2", "Cluster"); g10
 
@@ -92,5 +105,23 @@ fwrite(g, here::here("Results", "Tables", "XT between NK_new_clusters_nonzero.cs
 res_effectplot7 <- jtools::effect_plot(New_model1b, pred = Cluster, interval = TRUE, plot.points = TRUE)
 g12 <- res_effectplot7 +
   labs(y = "Weevil damage (%)") +
-  ggtitle("B")
-ggsave(path = here::here("Results", "Figs"), filename = "Total weevil damage against farm types_nonzero.png", width = 6, height = 7)
+  ggtitle("B")+
+  theme_bw(base_size = 12)+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black")
+  ) +
+  theme(axis.text.x = axis_text,
+        axis.text.y = axis_text,
+        title = axis_text)
+
+ggsave(path = here::here("Results", "Figs"), filename = "Total weevil damage against farm types_nonzero.eps", width = 6, height = 7)
+
+Grand2 <- g10 | g12
+Grand2
+graph2doc(
+  file = paste0(here::here("Results", "Figs"), "/", "Grand2.docx"),
+  width = 6,
+  height = 4
+)
