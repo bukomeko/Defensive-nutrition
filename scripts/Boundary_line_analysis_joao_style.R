@@ -1,5 +1,8 @@
 # Notes--------
 # fix the fonts
+# Make the K:N against distance
+# make the K:N ration against weevil damage
+# what amounts of K and N were used before treatments were combined
 
 ##  Packages and custom functions used-----
 library(tidyverse)            # the world of tidy data wrangling
@@ -11,9 +14,13 @@ library(patchwork)            # combining plots
 library(export)               # export graphs to word and office
 library(extrafont)            # fonts
 library(formatR)              # code readability
+library(here)
 
 # fetch my custom functions
 source(here::here("scripts", "Custom functions.R"))
+
+# visual elements
+axis_text <- element_text(color = "black", size = 12)
 
 ##  Data preparation    ####
 
@@ -34,7 +41,9 @@ yield <- DT[, c(
   "# Hands",
   "# Fingers"
 )]
+
 yield <- na.omit(yield)
+
 setnames(
   yield,
   c(
@@ -57,9 +66,7 @@ get_yield(yield)
 
 # Get boundary points
 yield %>%
-  .[BWT < 55] %>%
-  .[Dist < 100] %>% # drop outliers
-  .[, Rel_BWT := (BWT / (max(.[, BWT])))] -> yield # relative Bunch Weight
+  .[BWT < 55] %>% .[Dist < 100] %>% .[, Rel_BWT := (BWT / (max(.[, BWT])))] -> yield # relative Bunch Weight
 
 # split the data into top 10% yielders
 yield_10 <- yield %>% dplyr::filter(Rel_BWT > 0.9)
@@ -71,14 +78,12 @@ ymax <- mean(yield_10$Rel_BWT)
 #   theme_bw()
 #
 yield %>%
-  setorder(-Dist) %>% # sorting
-  .[, Bpts := get_bpts(Rel_BWT)] %>% # picking bpts
-  unique(., by = "Bpts") %>% # picking unique ones
-  na.omit() -> Bpts_F # Droping NAs $ renaming
+  setorder(-Dist) %>% .[, Bpts := get_bpts(Rel_BWT)] %>%
+  unique(by = "Bpts") %>% 
+  na.omit() -> Bpts_F 
 
 # fit nls model to Boundary points
-m1 <-
-  nls(Bpts ~ ymax / (1 + k * exp(-R * Dist)), start = list(k = 1, R = 8.35e-5), Bpts_F)
+m1 <- nls(Bpts ~ ymax / (1 + k * exp(-R * Dist)), start = list(k = 1, R = 8.35e-5), Bpts_F)
 z <- tidy(m1)
 m2 <- nls(
   Bpts ~ 1 / (1 + k * exp(-R * Dist)),
@@ -92,8 +97,6 @@ fwrite(tidy_m1, here::here("Results", "Tables", "Dist_vs_yield.csv"))
 # use the model to predict
 Bpts_F[, pred := predict(m2)]
 
-# visual elements
-axis_text <- element_text(color = "black", size = 12)
 
 # Visualize g1---------
 g1 <- ggplot(Bpts_F) +
@@ -179,10 +182,10 @@ ymax <- mean(Weevil_10$XI)
 
 # get bpts
 weevil %>%
-  setorder(.,-Distw) %>% # Order Ascending
-  .[, Bpts := get_bpts(XI)] %>% # calculating Boundary points
-  unique(., by = "Bpts") %>% # retain unique values
-  na.omit() -> Bpts_F # drop NAs
+  setorder(., -Distw) %>%
+  .[, Bpts := get_bpts(XI)] %>% 
+  unique(., by = "Bpts") %>% 
+  na.omit() -> Bpts_F 
 
 # fit nls
 m3 <- nls(Bpts ~ ymax / (1 + k * exp(-R * Distw)),
@@ -231,8 +234,8 @@ data.table::fread(here::here("data", "raw", "Baseline_cleaned and combined2.csv"
   na.omit() -> Nitrogen1
 
 # drop some points
-Nitrogen1 <-
-  Nitrogen1[N < 0.3] %>% .[XT < 9] %>% .[FarmID != "Mwesigye Alkarito"]
+# Nitrogen1 <-
+#   Nitrogen1[N < 0.3] %>% .[XT < 9] %>% .[FarmID != "Mwesigye Alkarito"]
 
 # # Visualize
 # ggplot(data = Nitrogen1, aes(N,XT)) +
@@ -251,15 +254,20 @@ ymax <- mean(Nitrogen1_10$XT)
 
 # get bpts
 Nitrogen1 %>%
-  setorder(., N) %>%             # Order Ascending
-  .[, Bpts := get_bpts(XT)] %>%   # calculating Boundary points
-  unique(., by = "Bpts") %>%      # retain unique values
-  na.omit(.) -> Bpts_F            # drop NAs
+  setorder(., N) %>%            
+  .[, Bpts := get_bpts(XT)] %>% 
+  unique(., by = "Bpts") %>%    
+  na.omit(.) -> Bpts_F
 
 # fit nls to the boundary points
+# mmm <- nls(Bpts ~ ymax / (1 + k * exp(-R * N)),
+#            start = list(k = 1, R = -0.05693),
+#            data = Bpts_F)
+# 
 mmm <- nls(Bpts ~ ymax / (1 + k * exp(-R * N)),
-           start = list(k = 1, R = -0.05693),
+           start = list(k = 1, R = 0.2),
            data = Bpts_F)
+
 tidy_mmmm <- tidy(mmm)
 
 mmm2 <- nls(
@@ -317,10 +325,10 @@ ymax <- mean(Nitrogen_10$XI)
 
 # get bpts
 Nitrogen %>%
-  setorder(.,-Distance) %>% # Order Ascending
-  .[, Bpts := get_bpts(N)] %>% # calculating Boundary points
-  unique(., by = "Bpts") %>% # retain unique values
-  na.omit(.) -> Bpts_F # drop NAs
+  setorder(., -Distance) %>% 
+  .[, Bpts := get_bpts(N)] %>% 
+  unique(., by = "Bpts") %>% 
+  na.omit(.) -> Bpts_F 
 
 # fit nls to the boundary points does not fit well
 m5 <- nls(Bpts ~ ymax / (1 + k * exp(-R * Distance)),
@@ -341,8 +349,11 @@ setnames(p_augment, "poly.Distance..2..raw...T.", "poly")
 # Visualize g3-----
 g3 <- ggplot(Bpts_F) +
   geom_point(aes(Distance, Bpts), position = "jitter") +
-  theme(panel.background = element_rect(fill = "white"))+
-  geom_smooth(data = p_augment, aes(poly[, 1], .fitted), se = FALSE, colour = "red") +
+  theme(panel.background = element_rect(fill = "white")) +
+  geom_smooth(data = p_augment,
+              aes(poly[, 1], .fitted),
+              se = FALSE,
+              colour = "red") +
   geom_point(data = Nitrogen, aes(Distance, N), position = "jitter") +
   expand_limits(x = 7, y = 0.1) +
   labs(x = "Distance from homestead (m)", y = "Soil Nitrogen (%)") +
@@ -404,20 +415,22 @@ ggsave(
 ##  K vs weevil ####
 data.table::fread(here::here("data", "raw", "Baseline_cleaned and combined2.csv")) %>%
   na.omit() -> dat
+plot(density(dat$XT))
+
 dat1 <- dat[XT > 0] %>%
-  .[XT < 10] %>%
-  .[K < 3] %>%
-  .[FarmID != "Barenwa Burandina"] %>%
-  .[FarmID != "Mangarina Elvaida"] %>%
-  .[FarmID != "Mehangye Henry"] %>%
-  .[FarmID != "Manyirwehi Bosco"] %>%
-  .[FarmID != "Kalyegira Olive"] %>%
-  .[FarmID != "Nakalanzi cissy"]
+  .[XT < 22] %>%
+  .[K < 3] #%>%
+  # .[FarmID != "Barenwa Burandina"] %>%
+  # .[FarmID != "Mangarina Elvaida"] %>%
+  # .[FarmID != "Mehangye Henry"] %>%
+  # .[FarmID != "Manyirwehi Bosco"] %>%
+  # .[FarmID != "Kalyegira Olive"] %>%
+  # .[FarmID != "Nakalanzi cissy"]
 
 
-# # Visualize
-# ggplot(data = dat1, aes(K, XT, label = FarmID)) +
-#   geom_point(position = "jitter") +
+# Visualize
+ggplot(data = dat1, aes(K, XT, label = FarmID)) +
+  geom_point(position = "jitter") +
 #   # geom_text(aes(label = FarmID),hjurst = 0,vjust=0)+
 #   # ggrepel::geom_text_repel()
 #   theme_bw()
@@ -429,10 +442,9 @@ dat1 <- dat[XT > 0] %>%
 
 # get bpts
 dat1 %>%
-  setorder(.,-K) %>% # Order Ascending
-  .[, Bpts := get_bpts(XT)] %>% # calculating Boundary points
-  unique(., by = "Bpts") %>% # retain unique values
-  na.omit() -> Bpts_F # drop NAs
+  setorder(., -K) %>% 
+  .[, Bpts := get_bpts(XT)] %>% 
+  unique(., by = "Bpts") %>%   na.omit() -> Bpts_F
 
 # split the data into top 10%
 p <- max(dat1$XT) * 0.9
@@ -445,20 +457,47 @@ m10 <-
   nls(Bpts ~ ymax / (1 + k * exp(-R * K)),
       start = list(k = 1, R = 0.002),
       data = Bpts_F)
-
-z <- tidy(m10)
-z
+z <- tidy(m10); z
 m11 <- nls(
   Bpts ~ (max(Bpts_F$Bpts)) / (1 + k * exp(-R * K)),
   start = list(k = z$estimate[1], R = z$estimate[2]),
   data = Bpts_F
 )
-z <- tidy(m11)
-z
+z <- tidy(m11) ;z
 fwrite(z, here::here("Results", "Tables", "XT_vs_K.csv"))
 formula(m11)
 
 Bpts_F[, Pred := predict(m11)]
+
+# Visualize with polynomial fit-----
+p <- lm(Bpts ~ poly(K, 2, raw = T), data = Bpts_F)
+N_vs_K <- tidy(p); N_vs_K
+fwrite(N_vs_dist, here::here("Results", "Tables", "N_vs_dist.csv"))
+p_augment <- augment(p)
+setnames(p_augment, "poly.K..2..raw...T.", "poly")
+
+K_vs_weevil_polyfit <- ggplot(Bpts_F) +
+  geom_point(aes(K, Bpts), position = "jitter") +
+  geom_smooth(data = p_augment,
+              aes(poly[, 1], .fitted),
+              se = FALSE,
+              colour = "red") +
+  geom_point(data = dat1, aes(K, XT), position = "jitter") +
+  expand_limits(x = 7, y = 0.1) +
+  labs(x = "Potassium (cmol (+)/kg soil)", y = "Weevil damage (%)") +
+  ggtitle("E") +
+  theme_bw(base_size = 12, base_family = "TT Courier New") +
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(colour = "black")
+  ) +
+  theme(axis.text.x = axis_text,
+        axis.text.y = axis_text,
+        title = axis_text)
+K_vs_weevil_polyfit
+
 
 # visualize g4---------
 g4 <- ggplot(Bpts_F) +
@@ -482,8 +521,7 @@ ggsave(
   path = here::here("Results", "Figs"),
   filename = "XT_vs_K.eps",
   width = 7,
-  height = 6
-)
+  height = 6)
 
 # Combine the graphs---------
 Grand <- (g1 | g2) / (g3 | g6) / (g4 | ggg)
@@ -496,5 +534,10 @@ graph2doc(
 
 windows()
 Grand
-citation()
-                                     
+
+
+
+
+
+
+
