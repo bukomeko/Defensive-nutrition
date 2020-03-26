@@ -1,5 +1,4 @@
 # Notes--------
-# fix the fonts
 
 ##  Packages and custom functions used-----
 library(tidyverse)            # the world of tidy data wrangling
@@ -11,9 +10,14 @@ library(patchwork)            # combining plots
 library(export)               # export graphs to word and office
 library(extrafont)            # fonts
 library(formatR)              # code readability
+library(here)
+library(styler)
 
 # fetch my custom functions
 source(here::here("scripts", "Custom functions.R"))
+
+# visual elements
+axis_text <- element_text(color = "black", size = 12)
 
 ##  Data preparation    ####
 
@@ -22,59 +26,29 @@ DT <- fread(here::here("data", "raw", "Baseline_Yield data.csv"))
 
 # Choose variables of interest
 yield <- DT[, c(
-  "ID",
-  "Region",
-  "Farm ID",
-  "Plot ID",
-  "Dist (m)",
-  "Mat No.",
-  "Plant No.",
-  "Girth_0 (cm)",
-  "Girth_100 (cm)",
-  "# Hands",
-  "# Fingers"
-)]
+  "ID", "Region", "Farm ID", "Plot ID", "Dist (m)", "Mat No.", "Plant No.", "Girth_0 (cm)",
+  "Girth_100 (cm)", "# Hands", "# Fingers")]
+
 yield <- na.omit(yield)
-setnames(
-  yield,
-  c(
-    "Dist (m)",
-    "Girth_0 (cm)",
-    "Girth_100 (cm)",
-    "# Hands",
-    "# Fingers"
-  ),
-  c("Dist", "Girth0", "Girth100", "Hands", "Fingers")
-)
+
+setnames(yield, 
+         c("Dist (m)", "Girth_0 (cm)", "Girth_100 (cm)", "# Hands", "# Fingers"), 
+         c("Dist", "Girth0", "Girth100", "Hands", "Fingers"))
 get_yield(yield)
-
-
-##  Distance vs yield   ####
-# # visualize first
-# ggplot(data = yield, aes(Dist, BWT)) +
-#   geom_point(position = "jitter") +
-#   theme_bw()
 
 # Get boundary points
 yield %>%
-  .[BWT < 55] %>%
-  .[Dist < 100] %>% # drop outliers
-  .[, Rel_BWT := (BWT / (max(.[, BWT])))] -> yield # relative Bunch Weight
+  .[BWT < 55] %>% .[Dist < 100] %>% .[, Rel_BWT := (BWT / (max(.[, BWT])))] -> yield
 
 # split the data into top 10% yielders
 yield_10 <- yield %>% dplyr::filter(Rel_BWT > 0.9)
 ymax <- mean(yield_10$Rel_BWT)
 
-# # visualize again
-# ggplot(data = yield, aes(Dist, Rel_BWT)) +
-#   geom_point(position = "jitter") +
-#   theme_bw()
-#
+# get Bpts
 yield %>%
-  setorder(-Dist) %>% # sorting
-  .[, Bpts := get_bpts(Rel_BWT)] %>% # picking bpts
-  unique(., by = "Bpts") %>% # picking unique ones
-  na.omit() -> Bpts_F # Droping NAs $ renaming
+  setorder(-Dist) %>% .[, Bpts := get_bpts(Rel_BWT)] %>%
+  unique(by = "Bpts") %>%
+  na.omit() -> Bpts_F
 
 # fit nls model to Boundary points
 m1 <-
@@ -92,8 +66,6 @@ fwrite(tidy_m1, here::here("Results", "Tables", "Dist_vs_yield.csv"))
 # use the model to predict
 Bpts_F[, pred := predict(m2)]
 
-# visual elements
-axis_text <- element_text(color = "black", size = 12)
 
 # Visualize g1---------
 g1 <- ggplot(Bpts_F) +
@@ -107,7 +79,6 @@ g1 <- ggplot(Bpts_F) +
   ) +
   expand_limits(x = 0, y = 0) +
   labs(x = "Distance from homestead (m)", y = "Relative Bunch weight") +
-  ggtitle("A") +
   theme_bw(base_size = 12, base_family = "TT Courier New") +
   theme(
     panel.background = element_rect(fill = "white"),
@@ -118,58 +89,37 @@ g1 <- ggplot(Bpts_F) +
   theme(axis.text.x = axis_text,
         axis.text.y = axis_text,
         title = axis_text)
+g1
+graph2doc(
+  file = paste0(here::here("Results", "Figs"), "/", "BWT_vs_Dist"),
+  width = 7,
+  height = 5
+)
+
+g1
 ggsave(
   path = here::here("Results", "Figs"),
   filename = "BWT_vs_Dist.eps",
   width = 7,
-  height = 6
+  height = 5
 )
 
 ##  Distance vs weevil  ####
 
 # weevil data
-weevil <-
-  fread(here::here("data", "raw", "Baseline_weevil data.csv"))
-setnames(
-  weevil,
-  c(
-    "Dist (m)",
-    "UXI (% Damage)",
-    "UXO (% Damage)",
-    "LLI (% Damage)",
-    "LXO (% Damage)"
-  ),
-  c("Distw", "UI_damage", "UO_damage", "LI_damage", "LO_damage"),
-  skip_absent = T
-)
+weevil <-  fread(here::here("data", "raw", "Baseline_weevil data.csv"))
+setnames(weevil, 
+         c("Dist (m)", "UXI (% Damage)", "UXO (% Damage)", "LLI (% Damage)", "LXO (% Damage)"), 
+         c("Distw", "UI_damage", "UO_damage", "LI_damage", "LO_damage"),
+         skip_absent = T )
+
 # Choose the variables of interest
-weevil <-
-  weevil[, c("ID",
-             "Region",
-             "Distw",
-             "UI_damage",
-             "UO_damage",
-             "LI_damage",
-             "LO_damage")]
+weevil <-   weevil[, c("ID", "Region", "Distw", "UI_damage", "UO_damage", "LI_damage", "LO_damage")]
 weevil <- na.omit(weevil)
 get_weevil_damage(weevil)
 
-# # Visualize
-# ggplot(data = weevil, aes(Distw, XI, colour = Region, label = ID)) +
-#   geom_point(position = "jitter") +
-#   geom_text(aes(label = ID), hjust = 0, vjust = 0)+
-#   theme_bw()
-#
-# ggplot(data= weevil[XT<30], aes(Distw ,XT)) +
-#     geom_point(position = "jitter")+
-#     theme_bw()
-
 # drop outliers
-weevil <-
-  weevil[XI < 30] %>% .[ID != 237] %>% .[ID != 1] %>% .[Distw < 150] %>%
-  # weevil <- weevil[XI < 40] %>%
-  # .[ID != 237] %>%
-  # .[ID != 1] %>%
+weevil <- weevil[XI < 30] %>% .[ID != 237] %>% .[ID != 1] %>% .[Distw < 150] %>%
   .[Distw < 150]
 
 # split the data into top 10%
@@ -179,10 +129,10 @@ ymax <- mean(Weevil_10$XI)
 
 # get bpts
 weevil %>%
-  setorder(.,-Distw) %>% # Order Ascending
-  .[, Bpts := get_bpts(XI)] %>% # calculating Boundary points
-  unique(., by = "Bpts") %>% # retain unique values
-  na.omit() -> Bpts_F # drop NAs
+  setorder(.,-Distw) %>%
+  .[, Bpts := get_bpts(XI)] %>%
+  unique(., by = "Bpts") %>%
+  na.omit() -> Bpts_F
 
 # fit nls
 m3 <- nls(Bpts ~ ymax / (1 + k * exp(-R * Distw)),
@@ -205,7 +155,6 @@ g2 <- ggplot(Bpts_F) +
   geom_point(data = weevil, aes(Distw, XI), position = "jitter") +
   expand_limits(x = 0, y = 0) +
   labs(x = "Distance from homestead (m)", y = "weevil damage(%)") +
-  ggtitle("B") +
   theme_bw(base_size = 12, base_family = "TT Courier New") +
   theme(
     panel.background = element_rect(fill = "white"),
@@ -216,97 +165,24 @@ g2 <- ggplot(Bpts_F) +
   theme(axis.text.x = axis_text,
         axis.text.y = axis_text,
         title = axis_text)
-
-
+g2
+graph2doc(
+  file = paste0(here::here("Results", "Figs"), "/", "damage_vs_Dist"),
+  width = 7,
+  height = 5
+)
+g2
 ggsave(
   path = here::here("Results", "Figs"),
   filename = "damage_vs_Dist.eps",
   width = 7,
-  height = 6
+  height = 5
 )
-
-
-##  Weevil vs N ####
-data.table::fread(here::here("data", "raw", "Baseline_cleaned and combined2.csv")) %>%
-  na.omit() -> Nitrogen1
-
-# drop some points
-Nitrogen1 <-
-  Nitrogen1[N < 0.3] %>% .[XT < 9] %>% .[FarmID != "Mwesigye Alkarito"]
-
-# # Visualize
-# ggplot(data = Nitrogen1, aes(N,XT)) +
-#   geom_point(position = "jitter") +
-#   labs(x="Soil Nitrogen (%)", y= "Weevil damage(%)",
-#        title="Soil nitrogen against weevil damage in Bananas")+
-#   theme_bw(base_size = 16)+
-#   expand_limits(x = 0, y = 0) +
-#   theme_bw(base_size = 12)
-#
-
-# split the data into top 10%
-p <- max(Nitrogen1$XT) * 0.9
-Nitrogen1_10 <- Nitrogen1 %>% dplyr::filter(XT > p)
-ymax <- mean(Nitrogen1_10$XT)
-
-# get bpts
-Nitrogen1 %>%
-  setorder(., N) %>%             # Order Ascending
-  .[, Bpts := get_bpts(XT)] %>%   # calculating Boundary points
-  unique(., by = "Bpts") %>%      # retain unique values
-  na.omit(.) -> Bpts_F            # drop NAs
-
-# fit nls to the boundary points
-mmm <- nls(Bpts ~ ymax / (1 + k * exp(-R * N)),
-           start = list(k = 1, R = -0.05693),
-           data = Bpts_F)
-tidy_mmmm <- tidy(mmm)
-
-mmm2 <- nls(
-  Bpts ~ ymax / (1 + k * exp(-R * N)),
-  start = list(k = tidy_mmmm$estimate[1], R = tidy_mmmm$estimate[2]),
-  data = Bpts_F
-)
-tidy_mmmm2 <- tidy(mmm2)
-
-# predict usig m5
-Bpts_F[, Pred := predict(mmm2)]
-
-# visualize ggg---------
-ggg <- ggplot(Bpts_F) +
-  geom_point(aes(N, XT)) +
-  geom_smooth(aes(N, Pred), se = F, colour = "red") +
-  geom_point(data = Nitrogen1, aes(N, XT), position = "jitter") +
-  expand_limits(x = 0.1, y = 0) +
-  labs(x = "Soil Nitrogen (%)", y = "Weevil damage(%)") +
-  ggtitle("F") +
-  theme_bw(base_size = 12, base_family = "TT Courier New") +
-  theme(
-    panel.background = element_rect(fill = "white"),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    axis.line = element_line(colour = "black")
-  ) +
-  theme(axis.text.x = axis_text,
-        axis.text.y = axis_text,
-        title = axis_text)
-ggsave(
-  path = here::here("Results", "Figs"),
-  filename = "Nitrogen vs XT.eps",
-  width = 10,
-  height = 6
-)
-
 
 ##  Distance vs N ####
 data.table::fread(here::here("data", "raw", "Baseline_cleaned and combined2.csv")) %>%
   na.omit() -> Nitrogen
 
-# # Visualize
-# ggplot(data = Nitrogen, aes(Distance, N, label = FarmID)) +
-#   geom_point(position = "jitter") +
-#   # geom_text(aes(label = FarmID),hjurst = 0,vjust=0)
-#   theme_bw()
 # drop some points
 Nitrogen <- Nitrogen[N < 0.25] %>% .[Distance > 5]
 
@@ -317,10 +193,10 @@ ymax <- mean(Nitrogen_10$XI)
 
 # get bpts
 Nitrogen %>%
-  setorder(.,-Distance) %>% # Order Ascending
-  .[, Bpts := get_bpts(N)] %>% # calculating Boundary points
-  unique(., by = "Bpts") %>% # retain unique values
-  na.omit(.) -> Bpts_F # drop NAs
+  setorder(.,-Distance) %>%
+  .[, Bpts := get_bpts(N)] %>%
+  unique(., by = "Bpts") %>%
+  na.omit(.) -> Bpts_F
 
 # fit nls to the boundary points does not fit well
 m5 <- nls(Bpts ~ ymax / (1 + k * exp(-R * Distance)),
@@ -341,12 +217,15 @@ setnames(p_augment, "poly.Distance..2..raw...T.", "poly")
 # Visualize g3-----
 g3 <- ggplot(Bpts_F) +
   geom_point(aes(Distance, Bpts), position = "jitter") +
-  theme(panel.background = element_rect(fill = "white"))+
-  geom_smooth(data = p_augment, aes(poly[, 1], .fitted), se = FALSE, colour = "red") +
+  theme(panel.background = element_rect(fill = "white")) +
+  geom_smooth(data = p_augment,
+              aes(poly[, 1], .fitted),
+              se = FALSE,
+              colour = "red") +
   geom_point(data = Nitrogen, aes(Distance, N), position = "jitter") +
   expand_limits(x = 7, y = 0.1) +
   labs(x = "Distance from homestead (m)", y = "Soil Nitrogen (%)") +
-  ggtitle("C") +
+  ggtitle("A") +
   theme_bw(base_size = 12, base_family = "TT Courier New") +
   theme(
     panel.background = element_rect(fill = "white"),
@@ -357,6 +236,7 @@ g3 <- ggplot(Bpts_F) +
   theme(axis.text.x = axis_text,
         axis.text.y = axis_text,
         title = axis_text)
+g3
 ggsave(
   path = here::here("Results", "Figs"),
   filename = "N_vs_Dist.eps",
@@ -364,17 +244,10 @@ ggsave(
   height = 6
 )
 
-
 ##  Distance vs K ####
 data.table::fread(here::here("data", "raw", "Baseline_cleaned and combined2.csv")) %>%
   na.omit() -> Potassium
 
-# Visualize
-# ggplot(data = Potassium, aes(Distance, K, label = FarmID)) +
-#   geom_point(position = "jitter") +
-#   # geom_text(aes(label = FarmID),hjurst = 0,vjust=0)
-#   theme_bw()
-#
 # drop some points
 Potassium <- Potassium[K < 3] %>% .[Distance < 60]
 
@@ -382,7 +255,7 @@ Potassium <- Potassium[K < 3] %>% .[Distance < 60]
 g6 <- ggplot(data = Potassium, aes(Distance, K, label = FarmID)) +
   geom_point(position = "jitter") +
   labs(x = "Distance from homestead (m)", y = "Soil Potassium \n (cmol(+)/kg soil)") +
-  ggtitle("D") +
+  ggtitle("B") +
   theme_bw(base_size = 12, base_family = "TT Courier New") +
   theme(
     panel.background = element_rect(fill = "white"),
@@ -393,6 +266,7 @@ g6 <- ggplot(data = Potassium, aes(Distance, K, label = FarmID)) +
   theme(axis.text.x = axis_text,
         axis.text.y = axis_text,
         title = axis_text)
+g6
 ggsave(
   path = here::here("Results", "Figs"),
   filename = "K_vs_Dist.eps",
@@ -401,38 +275,96 @@ ggsave(
 )
 
 
+# Combine g3 and g6 into 1 graph2bitmap
+Grand <- (g3 / g6)
+Grand
+graph2doc(
+  file = paste0(here::here("Results", "Figs"), "/", "K and N against distance"),
+  width = 7,
+  height = 10
+)
+
+
+##  Weevil vs N ####
+data.table::fread(here::here("data", "raw", "Baseline_cleaned and combined2.csv")) %>%
+  na.omit() -> Nitrogen1
+
+# drop some points
+Nitrogen1 <-
+  Nitrogen1[N < 0.3] %>% .[XT < 9] %>% .[FarmID != "Mwesigye Alkarito"]
+
+# split the data into top 10%
+p <- max(Nitrogen1$XT) * 0.9
+Nitrogen1_10 <- Nitrogen1 %>% dplyr::filter(XT > p)
+ymax <- mean(Nitrogen1_10$XT)
+
+# get bpts
+Nitrogen1 %>%
+  setorder(., N) %>%
+  .[, Bpts := get_bpts(XT)] %>%
+  unique(., by = "Bpts") %>%
+  na.omit(.) -> Bpts_F
+
+mmm <- nls(Bpts ~ ymax / (1 + k * exp(-R * N)),
+           start = list(k = 1, R = 0.2),
+           data = Bpts_F)
+
+tidy_mmmm <- tidy(mmm)
+
+mmm2 <- nls(
+  Bpts ~ ymax / (1 + k * exp(-R * N)),
+  start = list(k = tidy_mmmm$estimate[1], R = tidy_mmmm$estimate[2]),
+  data = Bpts_F
+)
+tidy_mmmm2 <- tidy(mmm2)
+
+# predict usig m5
+Bpts_F[, Pred := predict(mmm2)]
+
+# visualize ggg---------
+ggg <- ggplot(Bpts_F) +
+  geom_point(aes(N, XT)) +
+  geom_smooth(aes(N, Pred), se = F, colour = "red") +
+  geom_point(data = Nitrogen1, aes(N, XT), position = "jitter") +
+  expand_limits(x = 0.1, y = 0) +
+  labs(x = "Soil Nitrogen (%)", y = "Weevil damage(%)") +
+  ggtitle("B") +
+  theme_bw(base_size = 12, base_family = "TT Courier New") +
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(colour = "black")
+  ) +
+  theme(axis.text.x = axis_text,
+        axis.text.y = axis_text,
+        title = axis_text)
+ggg
+ggsave(
+  path = here::here("Results", "Figs"),
+  filename = "Nitrogen vs XT.eps",
+  width = 7,
+  height = 5
+)
+
 ##  K vs weevil ####
 data.table::fread(here::here("data", "raw", "Baseline_cleaned and combined2.csv")) %>%
   na.omit() -> dat
-dat1 <- dat[XT > 0] %>%
-  .[XT < 10] %>%
+# drop some outliers from the original
+dat <- dat[XT > 0] %>%
   .[K < 3] %>%
   .[FarmID != "Barenwa Burandina"] %>%
-  .[FarmID != "Mangarina Elvaida"] %>%
-  .[FarmID != "Mehangye Henry"] %>%
-  .[FarmID != "Manyirwehi Bosco"] %>%
-  .[FarmID != "Kalyegira Olive"] %>%
-  .[FarmID != "Nakalanzi cissy"]
+  .[FarmID != "Mangarina Elvaida"]
 
-
-# # Visualize
-# ggplot(data = dat1, aes(K, XT, label = FarmID)) +
-#   geom_point(position = "jitter") +
-#   # geom_text(aes(label = FarmID),hjurst = 0,vjust=0)+
-#   # ggrepel::geom_text_repel()
-#   theme_bw()
-# #
-#     ggplot(data= dat, aes(K,XI,label = FarmID)) +
-#         geom_point(position = "jitter")+
-#         # geom_text(aes(label = FarmID),hjurst = 0,vjust=0)
-#         theme_bw()
+# make data suitable for nls fit (avoid finishing iterations before converging)
+dat1 <- dat[XT > 0] %>%
+  .[XT < 20]
 
 # get bpts
 dat1 %>%
-  setorder(.,-K) %>% # Order Ascending
-  .[, Bpts := get_bpts(XT)] %>% # calculating Boundary points
-  unique(., by = "Bpts") %>% # retain unique values
-  na.omit() -> Bpts_F # drop NAs
+  setorder(.,-K) %>%
+  .[, Bpts := get_bpts(XT)] %>%
+  unique(., by = "Bpts") %>%   na.omit() -> Bpts_F
 
 # split the data into top 10%
 p <- max(dat1$XT) * 0.9
@@ -445,7 +377,6 @@ m10 <-
   nls(Bpts ~ ymax / (1 + k * exp(-R * K)),
       start = list(k = 1, R = 0.002),
       data = Bpts_F)
-
 z <- tidy(m10)
 z
 m11 <- nls(
@@ -464,10 +395,10 @@ Bpts_F[, Pred := predict(m11)]
 g4 <- ggplot(Bpts_F) +
   geom_point(aes(K, Bpts), position = "jitter", colour = "red") +
   geom_smooth(aes(K, Bpts), colour = "red", se = F) +
-  geom_point(data = dat1, aes(K, XT), position = "jitter") +
+  geom_point(data = dat, aes(K, XT), position = "jitter") +
   expand_limits(x = 0, y = 0) +
   labs(x = "Potassium (cmol (+)/kg soil)", y = "Weevil damage (%)") +
-  ggtitle("E") +
+  ggtitle("A") +
   theme_bw(base_size = 12, base_family = "TT Courier New") +
   theme(
     panel.background = element_rect(fill = "white"),
@@ -478,23 +409,22 @@ g4 <- ggplot(Bpts_F) +
   theme(axis.text.x = axis_text,
         axis.text.y = axis_text,
         title = axis_text)
+g4
 ggsave(
   path = here::here("Results", "Figs"),
   filename = "XT_vs_K.eps",
   width = 7,
-  height = 6
+  height = 5
 )
 
-# Combine the graphs---------
-Grand <- (g1 | g2) / (g3 | g6) / (g4 | ggg)
+
+# Combine  g4 and ggg---------
+Grand <- g4 / ggg
 Grand
 graph2doc(
-  file = paste0(here::here("Results", "Figs"), "/", "Grand.docx"),
+  file = paste0(here::here("Results", "Figs"), "/", "KN_vs Weevil damage.docx"),
   width = 6,
-  height = 8
+  height = 10
 )
 
-windows()
-Grand
-citation()
-                                     
+
